@@ -1,1 +1,110 @@
 Integrated MCA
+
+
+package com.example.employee;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+    SQLiteDatabase db;
+    Button btninsert,btnlist,btnupdate,btndelete;
+
+    @SuppressLint("WrongConstant")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        btninsert=(Button) findViewById(R.id.btninsert);
+        btnlist=(Button) findViewById(R.id.btn2);
+        btnupdate=(Button)findViewById(R.id.btn3);
+        btndelete=(Button)findViewById(R.id.btn4);
+        EditText eid=(EditText) findViewById(R.id.ed1);
+        EditText ename=(EditText) findViewById(R.id.ed2);
+        try{
+            db=openOrCreateDatabase("Studentdb",SQLiteDatabase.CREATE_IF_NECESSARY,null);
+            db.execSQL("Create Table emp(id integer,name text)");
+        }
+        catch (SQLException e){}
+        btninsert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                ContentValues values=new ContentValues();
+                values.put("id",eid.getText().toString());
+                values.put("name",ename.getText().toString());
+                if((db.insert("emp",null,values))!=-1){
+                    Toast.makeText(getApplicationContext(), "Record succesfully inserted", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Toast.makeText(MainActivity.this, "Not inserted", Toast.LENGTH_SHORT).show();
+                }
+                eid.setText("");
+                ename.setText("");
+
+            }
+
+        });
+        btnlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Cursor c=db.rawQuery("SELECT * FROM emp",null);
+                c.moveToFirst();
+                while(!c.isAfterLast()){
+                    Toast.makeText(MainActivity.this,c.getString(0)+ " "+c.getString(1),1000).show();
+                    c.moveToNext();
+                }
+                c.close();
+
+            }
+        });
+        btnupdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues values=new ContentValues();
+                String whereClause = "id = ?";
+                String[] whereArgs = { eid.getText().toString() };
+                values.put("name",ename.getText().toString());
+                if((db.update("emp",values,whereClause,whereArgs))!=-1)
+                {
+                    Toast.makeText(MainActivity.this, "Record Succesfully updated", 2000).show();
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this, "update error", 2000).show();
+                }
+                eid.setText("");
+                ename.setText("");
+            }
+        });
+        btndelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues values = new ContentValues();
+                values.put("name", eid.getText().toString());
+                String whereClause = "id = ?";
+                String[] whereArgs = { eid.getText().toString() };
+                int rowsDeleted = db.delete("emp", whereClause, whereArgs);
+                if (rowsDeleted > 0) {
+                    Toast.makeText(MainActivity.this, "Record successfully deleted!",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Delete Failed", Toast.LENGTH_SHORT).show();
+                }
+                eid.setText("");
+                ename.setText("");
+            }
+        });
+    }
+}
